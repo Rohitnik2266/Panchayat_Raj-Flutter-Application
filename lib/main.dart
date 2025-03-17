@@ -12,6 +12,7 @@ import 'screens/signup_screen.dart';
 import 'screens/submit_application.dart';
 import 'screens/track_status.dart';
 import 'screens/notifications.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 
 void main() async {

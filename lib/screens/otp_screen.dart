@@ -2,10 +2,11 @@ import 'dart:developer';
 import 'package:panchayat_raj/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class OtpScreen extends StatefulWidget {
-  String verificationId;
-  OtpScreen({super.key,required this.verificationId});
+  final String verificationId;
+  const OtpScreen({super.key, required this.verificationId});
 
   @override
   State<OtpScreen> createState() => _OtpScreenState();
@@ -17,87 +18,116 @@ class _OtpScreenState extends State<OtpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white, // Match LoginScreen background
       appBar: AppBar(
-        title: const Text("Enter OTP"),
+        title: Text(
+          "Enter OTP",
+          style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
+        backgroundColor: Colors.blueGrey, // Matching theme color
+        foregroundColor: Colors.white,
       ),
-      body: Stack(
-        children: [
-          // Background Image
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/logbg.jpg', // Replace with your actual image path
-              fit: BoxFit.cover,
-            ),
-          ),
-          // Foreground Content
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Padding(padding: EdgeInsets.symmetric(horizontal: 25),),
-                const Text(
-                  "Enter the OTP sent to your phone",
-                  style: TextStyle(fontSize: 20, color: Colors.black,fontWeight: FontWeight.bold), // Add color for better visibility
+      body: SafeArea(
+    child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Logo (Same as Login Screen)
+              Center(
+                child: Image.asset(
+                  "assets/images/lo.png",
+                  height: 200,
+                  width: 200,
+                  fit: BoxFit.contain,
                 ),
-                const SizedBox(height: 20),
-                TextField(
-                  controller: otpController,
-                  keyboardType: TextInputType.phone,
-                  decoration: InputDecoration(
-                    hintText: "OTP",
-                    hintStyle: const TextStyle(color: Colors.white), // Add hint color for better visibility
-                    suffixIcon: const Icon(Icons.phone, color: Colors.white),
-                    filled: true,
-                    fillColor: Colors.black.withOpacity(0.5),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                      borderSide: const BorderSide(color: Colors.green), // Border color
-                    ),
+              ),
+              const SizedBox(height: 30),
+
+              // Title
+              Text(
+                "Enter the OTP sent to your phone",
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // OTP Input Field
+              TextField(
+                controller: otpController,
+                keyboardType: TextInputType.number,
+                textAlign: TextAlign.center,
+                maxLength: 6,
+                decoration: InputDecoration(
+                  labelText: "OTP",
+                  prefixIcon: const Icon(Icons.lock, color: Colors.black),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    borderSide: const BorderSide(color: Colors.black),
                   ),
-                  style: const TextStyle(color: Colors.green), // Text color
+                  counterText: "", // Hide character counter
                 ),
-                const SizedBox(height: 20),
-                ElevatedButton(
+                style: const TextStyle(fontSize: 18, color: Colors.black),
+              ),
+              const SizedBox(height: 20),
+
+              // Verify OTP Button
+              SizedBox(
+                width: double.infinity,
+                height: 55,
+                child: ElevatedButton(
                   onPressed: () async {
                     try {
                       PhoneAuthCredential credential =
-                      await PhoneAuthProvider.credential(
+                      PhoneAuthProvider.credential(
                         verificationId: widget.verificationId,
-                        smsCode: otpController.text.toString(),
+                        smsCode: otpController.text.trim(),
                       );
-                      FirebaseAuth.instance.signInWithCredential(credential).then((value){
-                        Navigator.push(
-                            context, MaterialPageRoute(builder: (context)=> HomeScreen()));
+                      await FirebaseAuth.instance
+                          .signInWithCredential(credential)
+                          .then((value) {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => HomeScreen()),
+                        );
                       });
                     } catch (e) {
                       log(e.toString());
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Invalid OTP. Try again.")),
+                      );
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green, // Button color
-                    minimumSize: const Size(double.infinity, 60), // Larger button size
+                    backgroundColor: Colors.blueGrey, // Match Login Screen
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  child: const Text("Verify OTP",
-                    style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+                  child: Text(
+                    "Verify OTP",
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
+    )
     );
   }
 }
-
-

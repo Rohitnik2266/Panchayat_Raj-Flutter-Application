@@ -31,6 +31,8 @@ dependencies:
   provider: ^6.1.2
   flutter:
     sdk: flutter
+  google_fonts: ^6.1.0
+
 
   carousel_slider: ^5.0.0
   
@@ -39,6 +41,8 @@ dependencies:
 
   firebase_core: ^2.14.0
   firebase_auth: ^4.16.0
+  firebase_database: ^10.5.7
+  cloud_firestore: ^4.17.5
 
 
 
@@ -73,6 +77,7 @@ flutter:
       - assets/images/
       - assets/images/logbg.jpg
       - assets/images/sch.jpg
+      - assets/images/lo.png
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

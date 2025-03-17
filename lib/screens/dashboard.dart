@@ -1,140 +1,160 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:panchayat_raj/theme_provider.dart';
-import 'package:provider/provider.dart';
+import 'package:panchayat_raj/screens/profile_screen.dart';
+import 'package:panchayat_raj/screens/scheme_screen.dart';
 
-class Dashboard extends StatelessWidget {
+class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
 
   @override
+  State<Dashboard> createState() => _DashboardState();
+}
+
+class _DashboardState extends State<Dashboard> {
+  int _selectedIndex = 0;
+  String _userName = "Loading...";
+
+  final List<Widget> _screens = [
+    const HomeScreen(),
+    const SchemeListPage(),
+    const Profile(),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserName();
+  }
+
+  Future<void> _fetchUserName() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (userDoc.exists) {
+        setState(() {
+          _userName = userDoc['name'] ?? "User";
+        });
+      }
+    }
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDarkMode = themeProvider.isDarkMode;
-
-    final List<String> imageUrls = [
-      'https://via.placeholder.com/400x200.png?text=Gram+Panchayat+1',
-      'https://via.placeholder.com/400x200.png?text=Gram+Panchayat+2',
-      'https://via.placeholder.com/400x200.png?text=Gram+Panchayat+3',
-      'https://via.placeholder.com/400x200.png?text=Gram+Panchayat+4',
-    ];
-
     return Scaffold(
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: Image.asset(
-                'assets/images/sch.jpg',
-                fit: BoxFit.cover,
-              ),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _screens,
+      ),
+    );
+  }
+}
+
+// ✅ Home Screen with Carousel & Grid Menu
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  final List<String> imageUrls = const [
+    'https://img.jagrantv.com/gram_pachayattt.jpg',
+    'https://boldnewsonline.com/wp-content/uploads/2021/09/graham-sabha-750x322.jpg',
+    'https://dainiknews24.in/wp-content/uploads/2024/03/agrowon_2022-11_fb823891-54c0-49fa-8b14-7af015cd9c62_11Grampanchyat_1_0.jpg',
+    'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiqdWk_biEROu9iwg_L_2JrD5Bkkze7daKU5unMKCtBvVbV4EUkTQBSabSeVNnSGg0VqtSKwl3tuV8BLOTr8C-0RxdCJkyJBdlc7hs_L2_0omf-aCLP9XbNF_ET8gxTIJxvx1_sCQGVurZZpl5NWc303qjLFlC1Xlz3QDEpoKC01q7RMgBq5wpeRBTVhgw/s1199/13june.jpg',
+  ];
+
+  final List<Map<String, dynamic>> gridItems = const [
+    {'icon': Icons.description, 'label': 'Documents', 'route': '/documents'},
+    {'icon': Icons.calendar_today, 'label': 'Appointments', 'route': '/appointments'},
+    {'icon': Icons.location_on, 'label': 'Nearby Services', 'route': '/nearby_services'},
+    {'icon': Icons.people, 'label': 'Community', 'route': '/community'},
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/sch.jpg',
+              fit: BoxFit.cover,
             ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 20),
-                  const Center(
-                    child: Text(
-                      'Namaste 🙏🏻',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ✅ Carousel
+                Opacity(
+                  opacity: 0.8,
+                  child: CarouselSlider(
+                    options: CarouselOptions(
+                      height: 200.0,
+                      autoPlay: true,
+                      autoPlayInterval: const Duration(seconds: 3),
+                      enlargeCenterPage: true,
+                      aspectRatio: 16 / 9,
+                      viewportFraction: 0.8,
                     ),
+                    items: imageUrls.map((url) {
+                      return Builder(
+                        builder: (BuildContext context) {
+                          return Container(
+                            width: MediaQuery.of(context).size.width,
+                            margin: const EdgeInsets.symmetric(horizontal: 5.0),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.network(
+                                url,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Image.asset(
+                                    'assets/images/placeholder.png',
+                                    fit: BoxFit.cover,
+                                  );
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    }).toList(),
                   ),
-                  const SizedBox(height: 20),
-                  Opacity(
+                ),
+                const SizedBox(height: 20),
+
+                // ✅ Grid Menu
+                Expanded(
+                  child: Opacity(
                     opacity: 0.8,
-                    child: CarouselSlider(
-                      options: CarouselOptions(
-                        height: 200.0,
-                        autoPlay: true,
-                        autoPlayInterval: const Duration(seconds: 3),
-                        enlargeCenterPage: true,
-                        aspectRatio: 16 / 9,
-                        viewportFraction: 0.8,
+                    child: GridView.builder(
+                      padding: const EdgeInsets.all(16.0),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 16.0,
+                        mainAxisSpacing: 16.0,
+                        childAspectRatio: 1.0,
                       ),
-                      items: imageUrls.map((url) {
-                        return Builder(
-                          builder: (BuildContext context) {
-                            return Container(
-                              width: MediaQuery.of(context).size.width,
-                              margin: const EdgeInsets.symmetric(horizontal: 5.0),
-                              decoration: BoxDecoration(
-                                color: Colors.grey[200],
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: Image.network(
-                                  url,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Quick Actions',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,color: Colors.white),
-                        ),
-                        const SizedBox(height: 10),
-                        Wrap(
-                          spacing: 10,
-                          runSpacing: 10,
-                          children: [
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                Navigator.pushNamed(context, '/submit_application');
-                              },
-                              icon: const Icon(Icons.article, color: Colors.green),
-                              label: const Text('Submit Application', style: TextStyle(color: Colors.green)),
-                            ),
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                Navigator.pushNamed(context, '/track_status');
-                              },
-                              icon: const Icon(Icons.track_changes, color: Colors.green),
-                              label: const Text('Track Status', style: TextStyle(color: Colors.green)),
-                            ),
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                Navigator.pushNamed(context, '/notifications');
-                              },
-                              icon: const Icon(Icons.notifications, color: Colors.green),
-                              label: const Text('Notifications', style: TextStyle(color: Colors.green)),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Expanded(
-                    child: Opacity(
-                      opacity: 0.8,
-                      child: GridView.builder(
-                        padding: const EdgeInsets.all(16.0),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 16.0,
-                          mainAxisSpacing: 16.0,
-                          childAspectRatio: 1.0,
-                        ),
-                        itemCount: 10,
-                        itemBuilder: (context, index) {
-                          return Card(
+                      itemCount: gridItems.length,
+                      itemBuilder: (context, index) {
+                        return InkWell(
+                          onTap: () => Navigator.pushNamed(context, gridItems[index]['route']),
+                          child: Card(
                             elevation: 4.0,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8.0),
@@ -142,24 +162,24 @@ class Dashboard extends StatelessWidget {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const FlutterLogo(size: 48.0),
+                                Icon(gridItems[index]['icon'], size: 48.0, color: Colors.blue),
                                 const SizedBox(height: 8.0),
                                 Text(
-                                  'Item ${index + 1}',
-                                  style: const TextStyle(fontSize: 16.0),
+                                  gridItems[index]['label'],
+                                  style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
                                 ),
                               ],
                             ),
-                          );
-                        },
-                      ),
+                          ),
+                        );
+                      },
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

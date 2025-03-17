@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false, // Hides the debug banner
+       // Hides the debug banner
       title: 'Schemes List',
       theme: ThemeData(
         primarySwatch: Colors.green, // Sets a green theme
@@ -30,6 +30,7 @@ class SchemeListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     List<Scheme> schemes = [
       Scheme(
         name: "Gramin Rozgar Yojana",
@@ -90,9 +91,7 @@ class SchemeListPage extends StatelessWidget {
     List<Scheme> pastSchemes = schemes.sublist(6);       // Remaining schemes for past
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Schemes List'),
-      ),
+
       body: ListView(
         children: [
           // Active Schemes Section

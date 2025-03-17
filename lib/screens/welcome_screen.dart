@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart'; // Import Google Fonts
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -6,90 +7,54 @@ class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
+      backgroundColor: Colors.white,
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Background Image
-          Positioned.fill(
+          const Spacer(),
+          // Car Illustration
+          Center(
             child: Image.asset(
-              'assets/images/bg.jpg', // Replace with your background image path
-              fit: BoxFit.cover,
+              'assets/images/login.jpg',
+              height: 300,
             ),
           ),
-          // Foreground Content
+          const SizedBox(height: 20),
+          // Title with modern font
+          Text(
+            'Welcome',
+            style: GoogleFonts.poppins(
+              fontSize: 28,
+              fontWeight: FontWeight.w600,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 8),
+          // Subtitle with improved font
+          Text(
+            'Ghar bete Paye Yojanao Ka Labh..!!',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w400,
+              color: Colors.black54,
+            ),
+          ),
+          const Spacer(),
+          // Navigation Button
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Spacer(),
-                // Welcome Text
-                const Text(
-                  'Welcome',
-                  style: TextStyle(
-                    fontSize: 35.0,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black, // Ensure text is visible on the background
-                  ),
-                ),
-                const SizedBox(height: 8.0),
-                // Subtitle Text
-                const Text(
-                  'Ghar bete Paye Yojanao Ka Labh..!!',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16.0,
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const Spacer(),
-                // Illustration
-                const Spacer(flex: 10),
-                // Login Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/login');
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14.0),
-                      backgroundColor: Colors.white,
-                      side: const BorderSide(color: Colors.green),
-                    ),
-                    child: const Text(
-                      'Login',
-                      style: TextStyle(
-                        color: Colors.green,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16.0),
-                // Sign Up Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/signup');
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 14.0),
-                      backgroundColor: Colors.green,
-                    ),
-                    child: const Text(
-                      'Sign up',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                const Spacer(flex: 2),
-              ],
+            padding: const EdgeInsets.only(bottom: 80),
+            child: CircleAvatar(
+              radius: 30,
+              backgroundColor: Colors.blueGrey,
+              child: IconButton(
+                icon: const Icon(Icons.arrow_forward, color: Colors.white),
+                onPressed: () {
+                  // Navigate to the next screen
+                  Navigator.pushNamed(context, '/login');
+                },
+              ),
             ),
           ),
         ],

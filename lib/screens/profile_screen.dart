@@ -53,24 +53,6 @@ class Profile extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    _buildSettingsOption(
-                      context,
-                      icon: Icons.dark_mode,
-                      title: 'Dark mode',
-                      subtitle: 'Automatic',
-                      trailing: Switch(
-                        value: isDarkMode,
-                        activeColor: Colors.green[500],
-                        inactiveThumbColor: Colors.green[100],
-                        onChanged: (value) {
-                            themeProvider.toggleTheme();
-                        },
-                      ),
-                      onTap: () {
-                        themeProvider.toggleTheme();
-                      },
-                    ),
                     _buildSettingsOption(
                       context,
                       icon: Icons.info,

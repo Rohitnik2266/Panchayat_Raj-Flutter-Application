@@ -1,87 +1,174 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-class SignupScreen extends StatelessWidget {
+class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
+
+  @override
+  _SignupScreenState createState() => _SignupScreenState();
+}
+
+class _SignupScreenState extends State<SignupScreen> {
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController numberController = TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  bool isLoading = false;
+
+  Future<void> _signUp() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => isLoading = true);
+
+    try {
+      String phoneNumber = numberController.text.trim();
+
+      // Reference to Firestore collection
+      CollectionReference users = FirebaseFirestore.instance.collection('users');
+
+      // Check if the phone number already exists
+      QuerySnapshot query = await users.where('number', isEqualTo: phoneNumber).get();
+      if (query.docs.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Phone number is already registered")),
+        );
+        setState(() => isLoading = false);
+        return;
+      }
+
+      // Store user data
+      await users.add({
+        'name': nameController.text.trim(),
+        'number': phoneNumber,
+        'createdAt': Timestamp.now(),
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Sign-up successful!")),
+      );
+
+      // Navigate to Login Screen
+      Navigator.pushNamed(context, '/login');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: ${e.toString()}")),
+      );
+    }
+
+    setState(() => isLoading = false);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Sign Up"),
-      ),
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/logbg.jpg', // Replace with your image path
-              fit: BoxFit.cover,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Form(
+            key: _formKey,
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center, // Center content vertically
-              children: <Widget>[
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: "Name",
-                    labelStyle: const TextStyle(color: Colors.black), // White label text
-                    border: const OutlineInputBorder(),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.green[400]!), // Green border when focused
-                    ),
-                    enabledBorder: const OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.grey), // Grey border when not focused
-                    ),
-                    filled: true,
-                    fillColor: Colors.white70, // Semi-transparent white background
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 80),
+                Center(
+                  child: Image.asset(
+                    "assets/images/lo.png",
+                    height: 250,
+                    width: 250,
+                    fit: BoxFit.contain,
                   ),
-                  cursorColor: Colors.green, // Green cursor
-                  style: const TextStyle(color: Colors.black), // Black input text
                 ),
-                const SizedBox(height: 10),
-                TextField(
+                const SizedBox(height: 50),
+
+                // Name Input
+                TextFormField(
+                  controller: nameController,
+                  validator: (value) => value!.isEmpty ? "Enter your full name" : null,
+                  decoration: InputDecoration(
+                    labelText: "Full Name",
+                    prefixIcon: const Icon(Icons.person, color: Colors.black),
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  style: const TextStyle(color: Colors.black),
+                ),
+                const SizedBox(height: 15),
+
+                // Phone Number Input
+                TextFormField(
+                  controller: numberController,
+                  keyboardType: TextInputType.phone,
+                  validator: (value) => value!.length != 10 ? "Enter a valid phone number" : null,
                   decoration: InputDecoration(
                     labelText: "Phone Number",
-                    labelStyle: const TextStyle(color: Colors.black), // White label text
-                    border: const OutlineInputBorder(),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.green[400]!), // Green border when focused
-                    ),
-                    enabledBorder: const OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.grey), // Grey border when not focused
-                    ),
+                    prefixText: "+91 ",
+                    prefixIcon: const Icon(Icons.phone, color: Colors.black),
                     filled: true,
-                    fillColor: Colors.white70, // Semi-transparent white background
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
                   ),
-                  cursorColor: Colors.green, // Green cursor
-                  style: const TextStyle(color: Colors.black), // Black input text
-                  keyboardType: TextInputType.phone, // Phone keyboard for phone number field
+                  style: const TextStyle(color: Colors.black),
                 ),
                 const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/dashboard');
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green, // Green button background
-                    foregroundColor: Colors.white, // White button text color
-                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15), // Button padding
-                    textStyle: const TextStyle(fontSize: 18), // Button text size
-                  ),
-                  child: const Text(
-                    "Sign Up",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+
+                // Sign Up Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 55,
+                  child: ElevatedButton(
+                    onPressed: isLoading ? null : _signUp,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueGrey,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    child: isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : Text(
+                      "Sign Up",
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
+                ),
+                const SizedBox(height: 20),
+
+                // Login Option
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Already have an account? ",
+                      style: GoogleFonts.poppins(fontSize: 14, color: Colors.black87),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Text(
+                        "Login",
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
