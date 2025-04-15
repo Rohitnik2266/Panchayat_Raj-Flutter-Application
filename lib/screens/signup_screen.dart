@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'otp_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -13,22 +15,24 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController numberController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
   bool isLoading = false;
 
-  Future<void> _signUp() async {
+  Future<void> _verifyPhoneAndProceed() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => isLoading = true);
 
+    String phone = numberController.text.trim();
+    String name = nameController.text.trim();
+    String completePhone = "+91$phone";
+
     try {
-      String phoneNumber = numberController.text.trim();
+      // Check if the number is already registered
+      QuerySnapshot query = await FirebaseFirestore.instance
+          .collection('users')
+          .where('number', isEqualTo: phone)
+          .get();
 
-      // Reference to Firestore collection
-      CollectionReference users = FirebaseFirestore.instance.collection('users');
-
-      // Check if the phone number already exists
-      QuerySnapshot query = await users.where('number', isEqualTo: phoneNumber).get();
       if (query.docs.isNotEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Phone number is already registered")),
@@ -37,32 +41,45 @@ class _SignupScreenState extends State<SignupScreen> {
         return;
       }
 
-      // Store user data
-      await users.add({
-        'name': nameController.text.trim(),
-        'number': phoneNumber,
-        'createdAt': Timestamp.now(),
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Sign-up successful!")),
+      // Start phone number verification
+      await FirebaseAuth.instance.verifyPhoneNumber(
+        phoneNumber: completePhone,
+        verificationCompleted: (PhoneAuthCredential credential) {},
+        verificationFailed: (FirebaseAuthException e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Verification failed: ${e.message}")),
+          );
+          setState(() => isLoading = false);
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => OtpScreen(
+                verificationId: verificationId,
+                name: name,
+                number: phone,
+              ),
+            ),
+          );
+          setState(() => isLoading = false);
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {},
       );
-
-      // Navigate to Login Screen
-      Navigator.pushNamed(context, '/login');
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: ${e.toString()}")),
       );
+      setState(() => isLoading = false);
     }
-
-    setState(() => isLoading = false);
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -81,25 +98,22 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                 ),
                 const SizedBox(height: 50),
-
-                // Name Input
                 TextFormField(
                   controller: nameController,
                   validator: (value) => value!.isEmpty ? "Enter your full name" : null,
                   decoration: InputDecoration(
                     labelText: "Full Name",
-                    prefixIcon: const Icon(Icons.person, color: Colors.black),
+                    prefixIcon: Icon(Icons.person, color: theme.iconTheme.color),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: theme.cardColor,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
+                    labelStyle: TextStyle(color: theme.hintColor),
                   ),
-                  style: const TextStyle(color: Colors.black),
+                  style: TextStyle(color: theme.textTheme.bodyLarge?.color),
                 ),
                 const SizedBox(height: 15),
-
-                // Phone Number Input
                 TextFormField(
                   controller: numberController,
                   keyboardType: TextInputType.phone,
@@ -107,23 +121,22 @@ class _SignupScreenState extends State<SignupScreen> {
                   decoration: InputDecoration(
                     labelText: "Phone Number",
                     prefixText: "+91 ",
-                    prefixIcon: const Icon(Icons.phone, color: Colors.black),
+                    prefixIcon: Icon(Icons.phone, color: theme.iconTheme.color),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: theme.cardColor,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
+                    labelStyle: TextStyle(color: theme.hintColor),
                   ),
-                  style: const TextStyle(color: Colors.black),
+                  style: TextStyle(color: theme.textTheme.bodyLarge?.color),
                 ),
                 const SizedBox(height: 20),
-
-                // Sign Up Button
                 SizedBox(
                   width: double.infinity,
                   height: 55,
                   child: ElevatedButton(
-                    onPressed: isLoading ? null : _signUp,
+                    onPressed: isLoading ? null : _verifyPhoneAndProceed,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blueGrey,
                       shape: RoundedRectangleBorder(
@@ -143,14 +156,15 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-
-                // Login Option
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       "Already have an account? ",
-                      style: GoogleFonts.poppins(fontSize: 14, color: Colors.black87),
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: theme.textTheme.bodyLarge?.color,
+                      ),
                     ),
                     GestureDetector(
                       onTap: () => Navigator.pop(context),

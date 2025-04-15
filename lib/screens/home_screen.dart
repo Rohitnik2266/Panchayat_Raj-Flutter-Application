@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:panchayat_raj/screens/settings_screen.dart';
 import 'dashboard.dart';
 import 'scheme_screen.dart';
 import 'profile_screen.dart';
@@ -15,12 +17,13 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   String _userName = "Loading...";
-  String _userPhone = "Loading...";
+  final String _userPhone = "Apke Sewa Mai Hagir Hai 🙏🏻";
 
   final List<Widget> _screens = [
     const Dashboard(),
     const SchemeListPage(),
     const Profile(),
+    const SettingsScreen()
   ];
 
   @override
@@ -40,7 +43,6 @@ class _HomeScreenState extends State<HomeScreen> {
       if (userDoc.exists) {
         setState(() {
           _userName = userDoc['name'] ?? "User";
-          _userPhone = userDoc['number'] ?? "Not Available";
         });
       }
     }
@@ -55,11 +57,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blueGrey,
         title: Text(
-          "Hello, $_userName 👋",
+          "${t.hello}, $_userName 👋",
           style: const TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
@@ -78,10 +82,10 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             UserAccountsDrawerHeader(
               decoration: const BoxDecoration(
-                color: Colors.blueGrey, // Background color for the header
+                color: Colors.blueGrey,
               ),
-              accountName: Text(_userName, style: const TextStyle(fontSize: 18)),
-              accountEmail: Text(_userPhone, style: const TextStyle(fontSize: 16)),
+              accountName: Text(_userName, style: const TextStyle(fontSize: 19)),
+              accountEmail: Text(_userPhone, style: const TextStyle(fontSize: 18)),
               currentAccountPicture: const CircleAvatar(
                 backgroundColor: Colors.white,
                 child: Icon(Icons.person, size: 40, color: Colors.blue),
@@ -89,28 +93,28 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.dashboard),
-              title: const Text("Dashboard"),
+              title: Text(t.dashboard),
               onTap: () => _onDrawerItemTapped(0),
             ),
             ListTile(
               leading: const Icon(Icons.list),
-              title: const Text("Schemes"),
+              title: Text(t.schemes),
               onTap: () => _onDrawerItemTapped(1),
             ),
             ListTile(
               leading: const Icon(Icons.person),
-              title: const Text("Profile"),
+              title: Text(t.profile),
               onTap: () => _onDrawerItemTapped(2),
             ),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.settings),
-              title: const Text("Settings"),
-              onTap: () => Navigator.pushNamed(context, "/settings"),
+              title: Text(t.settings),
+              onTap: () => _onDrawerItemTapped(3),
             ),
             ListTile(
               leading: const Icon(Icons.logout),
-              title: const Text("Logout"),
+              title: Text(t.logout),
               onTap: () {
                 FirebaseAuth.instance.signOut();
                 Navigator.pushReplacementNamed(context, "/login");

@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:panchayat_raj/screens/nearby_offices_screen.dart';
 import 'package:panchayat_raj/screens/profile_screen.dart';
 import 'package:panchayat_raj/screens/scheme_screen.dart';
 
@@ -17,7 +20,7 @@ class _DashboardState extends State<Dashboard> {
   String _userName = "Loading...";
 
   final List<Widget> _screens = [
-    const HomeScreen(),
+    HomeScreen(),
     const SchemeListPage(),
     const Profile(),
   ];
@@ -61,26 +64,27 @@ class _DashboardState extends State<Dashboard> {
   }
 }
 
-// ✅ Home Screen with Carousel & Grid Menu
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  HomeScreen({super.key});
 
-  final List<String> imageUrls = const [
-    'https://img.jagrantv.com/gram_pachayattt.jpg',
-    'https://boldnewsonline.com/wp-content/uploads/2021/09/graham-sabha-750x322.jpg',
-    'https://dainiknews24.in/wp-content/uploads/2024/03/agrowon_2022-11_fb823891-54c0-49fa-8b14-7af015cd9c62_11Grampanchyat_1_0.jpg',
-    'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiqdWk_biEROu9iwg_L_2JrD5Bkkze7daKU5unMKCtBvVbV4EUkTQBSabSeVNnSGg0VqtSKwl3tuV8BLOTr8C-0RxdCJkyJBdlc7hs_L2_0omf-aCLP9XbNF_ET8gxTIJxvx1_sCQGVurZZpl5NWc303qjLFlC1Xlz3QDEpoKC01q7RMgBq5wpeRBTVhgw/s1199/13june.jpg',
+  final List<String> imageAssets = [
+    'assets/images/pkvy.png',
+    'assets/images/pm-kisan.png',
+    'assets/images/pmfby.png',
+    'assets/images/pmkmy.png',
   ];
 
   final List<Map<String, dynamic>> gridItems = const [
-    {'icon': Icons.description, 'label': 'Documents', 'route': '/documents'},
-    {'icon': Icons.calendar_today, 'label': 'Appointments', 'route': '/appointments'},
-    {'icon': Icons.location_on, 'label': 'Nearby Services', 'route': '/nearby_services'},
-    {'icon': Icons.people, 'label': 'Community', 'route': '/community'},
+    {'icon': Icons.description, 'label': 'documents', 'route': '/documents'},
+    {'icon': Icons.track_changes, 'label': 'trackApplication', 'route': '/track_application'},
+    {'icon': Icons.location_on, 'label': 'nearbyServices', 'route': '/nearby_services'},
+    {'icon': Icons.people, 'label': 'community', 'route': '/community'},
   ];
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+
     return SafeArea(
       child: Stack(
         children: [
@@ -95,7 +99,6 @@ class HomeScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ✅ Carousel
                 Opacity(
                   opacity: 0.8,
                   child: CarouselSlider(
@@ -107,25 +110,31 @@ class HomeScreen extends StatelessWidget {
                       aspectRatio: 16 / 9,
                       viewportFraction: 0.8,
                     ),
-                    items: imageUrls.map((url) {
+                    items: imageAssets.map((assetPath) {
                       return Builder(
                         builder: (BuildContext context) {
+                          if (kDebugMode) {
+                            print('Loading asset: $assetPath');
+                          }
                           return Container(
-                            width: MediaQuery.of(context).size.width,
                             margin: const EdgeInsets.symmetric(horizontal: 5.0),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[200],
-                              borderRadius: BorderRadius.circular(10),
-                            ),
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(10),
-                              child: Image.network(
-                                url,
+                              child: Image.asset(
+                                assetPath,
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) {
-                                  return Image.asset(
-                                    'assets/images/placeholder.png',
-                                    fit: BoxFit.cover,
+                                  return Container(
+                                    color: Colors.red,
+                                    child: Center(
+                                      child: Text(
+                                        'imageNotFound',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
                                   );
                                 },
                               ),
@@ -137,8 +146,6 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
-
-                // ✅ Grid Menu
                 Expanded(
                   child: Opacity(
                     opacity: 0.8,
@@ -152,8 +159,27 @@ class HomeScreen extends StatelessWidget {
                       ),
                       itemCount: gridItems.length,
                       itemBuilder: (context, index) {
+                        final labelKey = gridItems[index]['label'];
+                        final label = {
+                          'documents': t.documents,
+                          'trackApplication': t.trackApplication,
+                          'nearbyServices': t.nearbyServices,
+                          'community': t.community,
+                        }[labelKey] ?? labelKey;
+
                         return InkWell(
-                          onTap: () => Navigator.pushNamed(context, gridItems[index]['route']),
+                          onTap: () {
+                            if (labelKey == 'nearbyServices') {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const NearbyOfficesScreen(),
+                                ),
+                              );
+                            } else {
+                              Navigator.pushNamed(context, gridItems[index]['route']);
+                            }
+                          },
                           child: Card(
                             elevation: 4.0,
                             shape: RoundedRectangleBorder(
@@ -165,8 +191,11 @@ class HomeScreen extends StatelessWidget {
                                 Icon(gridItems[index]['icon'], size: 48.0, color: Colors.blue),
                                 const SizedBox(height: 8.0),
                                 Text(
-                                  gridItems[index]['label'],
-                                  style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
+                                  label,
+                                  style: const TextStyle(
+                                    fontSize: 16.0,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ],
                             ),

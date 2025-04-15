@@ -1,185 +1,185 @@
 import 'package:flutter/material.dart';
-import 'package:panchayat_raj/theme_provider.dart';
-import 'package:provider/provider.dart';
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-       // Hides the debug banner
-      title: 'Schemes List',
-      theme: ThemeData(
-        primarySwatch: Colors.green, // Sets a green theme
-      ),
-      home: WillPopScope(
-        onWillPop: () async => false, // Disable back button functionality
-        child: const SchemeListPage(),
-      ),
-    );
-  }
-}
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:panchayat_raj/screens/schemes/pmkisanpage.dart';
+import 'package:panchayat_raj/screens/schemes/pmksypage.dart';
+import 'package:panchayat_raj/screens/schemes/pmfbypage.dart';
+import 'package:panchayat_raj/screens/schemes/kccpage.dart';
+import 'package:panchayat_raj/screens/schemes/soilhealthcardpage.dart';
+import 'package:panchayat_raj/screens/schemes/enampage.dart';
+import 'package:panchayat_raj/screens/schemes/acabcpage.dart';
+import 'package:panchayat_raj/screens/schemes/kisansuvidhapage.dart';
+import 'package:panchayat_raj/screens/schemes/mkisanpage.dart';
+import 'package:panchayat_raj/screens/schemes/pmkusumpage.dart';
+import 'package:panchayat_raj/screens/schemes/kayakamitrapage.dart';
+import 'package:panchayat_raj/screens/schemes/ShivSanmanPage.dart';
+import 'package:panchayat_raj/screens/schemes/MahaDBTMechanizationPage.dart';
+import 'package:panchayat_raj/screens/schemes/DbtAgriculturePage.dart';
+import 'package:panchayat_raj/screens/schemes/NaifPage.dart';
 
 class SchemeListPage extends StatelessWidget {
   const SchemeListPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    List<Scheme> schemes = [
-      Scheme(
-        name: "Gramin Rozgar Yojana",
-        description: "A scheme for rural employment.",
-      ),
-      Scheme(
-        name: "Mahatma Gandhi National Rural Employment Guarantee Act",
-        description: "Provides wage employment to rural families.",
-      ),
-      Scheme(
-        name: "Pradhan Mantri Gram Sadak Yojana",
-        description: "Improves rural road infrastructure.",
-      ),
-      Scheme(
-        name: "Swachh Bharat Abhiyan",
-        description: "Aimed at improving sanitation in rural and urban India.",
-      ),
-      Scheme(
-        name: "Pradhan Mantri Awas Yojana",
-        description: "Affordable housing scheme for rural and urban poor.",
-      ),
-      Scheme(
-        name: "Atal Pension Yojana",
-        description: "A social security scheme for unorganized sector workers.",
-      ),
-      Scheme(
-        name: "Jan Dhan Yojana",
-        description: "Promotes financial inclusion by opening bank accounts.",
-      ),
-      Scheme(
-        name: "Digital India",
-        description:
-        "Focuses on transforming India into a digitally empowered society.",
-      ),
-      Scheme(
-        name: "Skill India Mission",
-        description:
-        "Aims to train youth in various skills to enhance employability.",
-      ),
-      Scheme(
-        name: "Beti Bachao Beti Padhao",
-        description: "Promotes the welfare of girls and their education.",
-      ),
-      Scheme(
-        name: "Ujjwala Yojana",
-        description:
-        "Provides LPG connections to women from Below Poverty Line families.",
-      ),
-      Scheme(
-        name: "PM-Kisan Samman Nidhi",
-        description:
-        "Provides financial assistance to farmers for their needs.",
-      ),
+    final schemes = [
+      {
+        'title': t.pmkisanTitle,
+        'description': t.pmkisanDescription,
+        'page': const PmKisanPage()
+      },
+      {
+        'title': t.pmksyTitle,
+        'description': t.pmksyDescription,
+        'page': const PmksyPage()
+      },
+      {
+        'title': t.pmfbyTitle,
+        'description': t.pmfbyDescription,
+        'page': const PmfbYPage()
+      },
+      {
+        'title': t.enamTitle,
+        'description': t.enamDescription,
+        'page': const ENamPage()
+      },
+      {
+        'title': t.acabcTitle,
+        'description': t.acabcDescription,
+        'page': const ACABCPage()
+      },
+      {
+        'title': t.naifTitle,
+        'description': t.naifDescription,
+        'page': const NaifPage()
+      },
+      {
+        'title': t.dbtTitle,
+        'description': t.dbtDescription,
+        'page': const DbtAgriculturePage()
+      },
+      {
+        'title': t.kisansuvidhaTitle,
+        'description': t.kisansuvidhaDescription,
+        'page': const KisanSuvidhaPage()
+      },
+      {
+        'title': t.pmkusumTitle,
+        'description': t.pmkusumDescription,
+        'page': const PmKusumPage()
+      },
+      {
+        'title': t.kccTitle,
+        'description': t.kccDescription,
+        'page': const KccPage()
+      },
+      {
+        'title': t.soilhealthTitle,
+        'description': t.soilhealthDescription,
+        'page': const SoilHealthCardPage()
+      },
+      {
+        'title': t.kayakamitraTitle,
+        'description': t.kayakamitraDescription,
+        'page': const KayakaMitraPage()
+      },
+      {
+        'title': t.mkisanTitle,
+        'description': t.mkisanDescription,
+        'page': const MKisanPage()
+      },
+      {
+        'title': t.shivsanmanTitle,
+        'description': t.shivsanmanDescription,
+        'page': const ShivSanmanPage()
+      },
+      {
+        'title': t.mahadbtTitle,
+        'description': t.mahadbtDescription,
+        'page': const MahaDBTMechanizationPage()
+      },
     ];
 
-    // Divide the schemes into two lists
-    List<Scheme> activeSchemes = schemes.sublist(0, 6);  // First 6 schemes for active
-    List<Scheme> pastSchemes = schemes.sublist(6);       // Remaining schemes for past
-
     return Scaffold(
-
-      body: ListView(
-        children: [
-          // Active Schemes Section
-          const SizedBox(height: 20),
-          const SectionTitle(title: 'Active Schemes'),
-          ...activeSchemes.map((scheme) => SchemeCard(scheme: scheme)).toList(),
-
-          const SizedBox(height: 20),
-          const Divider(),
-
-          // Past Schemes Section
-          const SectionTitle(title: 'Past Schemes'),
-          ...pastSchemes.map((scheme) => SchemeCard(scheme: scheme)).toList(),
-        ],
-      ),
-    );
-  }
-}
-
-class SchemeCard extends StatelessWidget {
-  final Scheme scheme;
-
-  const SchemeCard({super.key, required this.scheme});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.all(10),
-      elevation: 5,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
-      color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              scheme.name,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color.fromARGB(255, 0, 91, 3),
+      body: ListView.builder(
+        itemCount: schemes.length,
+        itemBuilder: (context, index) {
+          final scheme = schemes[index];
+          return Card(
+            elevation: 5,
+            margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            color: isDark ? Colors.grey[850] : Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    scheme['title'] as String,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    scheme['description'] as String,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: isDark ? Colors.white70 : Colors.black54,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => scheme['page'] as Widget,
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.info),
+                        label: Text(t.details),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blueGrey[600],
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => scheme['page'] as Widget,
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.check),
+                        label: Text(t.apply),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue[600],
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              scheme.description,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Colors.black54,
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
-    );
-  }
-}
-
-class Scheme {
-  final String name;
-  final String description;
-
-  Scheme({required this.name, required this.description});
-}
-
-class SectionTitle extends StatelessWidget {
-  final String title;
-
-  const SectionTitle({Key? key, required this.title}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<ThemeProvider>( // Use Consumer to access ThemeProvider
-      builder: (context, themeProvider, _) {
-        final theme = Theme.of(context); // Access current theme
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Text(
-            title,
-            style: theme.textTheme.titleLarge!.copyWith(
-              color: themeProvider.isDarkMode ? Colors.white : Colors.black,
-            ),
-          ),
-        );
-      },
     );
   }
 }
