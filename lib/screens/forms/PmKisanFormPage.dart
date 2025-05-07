@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PMKisanFormPage extends StatefulWidget {
   const PMKisanFormPage({super.key});
@@ -11,6 +13,8 @@ class PMKisanFormPage extends StatefulWidget {
 
 class _PMKisanFormPageState extends State<PMKisanFormPage> {
   final _formKey = GlobalKey<FormState>();
+  bool isSubmitted = false;
+
   String gender = 'Female';
   String landHolding = 'Single';
   String idType = 'Aadhaar Card';
@@ -54,19 +58,68 @@ class _PMKisanFormPageState extends State<PMKisanFormPage> {
   };
 
   List<String> get states => ['Select', ...locationData.keys];
-  List<String> get districts =>
-      selectedState != null && selectedState != 'Select' ? ['Select', ...locationData[selectedState]!.keys] : ['Select'];
-  List<String> get subDistricts =>
-      selectedDistrict != null && selectedDistrict != 'Select' ? ['Select', ...locationData[selectedState]![selectedDistrict]!.keys] : ['Select'];
-  List<String> get blocks =>
-      selectedSubDistrict != null && selectedSubDistrict != 'Select' ? ['Select', ...locationData[selectedState]![selectedDistrict]![selectedSubDistrict]!.keys] : ['Select'];
-  List<String> get villages =>
-      selectedBlock != null && selectedBlock != 'Select' ? ['Select', ...locationData[selectedState]![selectedDistrict]![selectedSubDistrict]![selectedBlock]!]: ['Select'];
+  List<String> get districts => selectedState != null && selectedState != 'Select'
+      ? ['Select', ...locationData[selectedState]!.keys]
+      : ['Select'];
+  List<String> get subDistricts => selectedDistrict != null && selectedDistrict != 'Select'
+      ? ['Select', ...locationData[selectedState]![selectedDistrict]!.keys]
+      : ['Select'];
+  List<String> get blocks => selectedSubDistrict != null && selectedSubDistrict != 'Select'
+      ? ['Select', ...locationData[selectedState]![selectedDistrict]![selectedSubDistrict]!.keys]
+      : ['Select'];
+  List<String> get villages => selectedBlock != null && selectedBlock != 'Select'
+      ? ['Select', ...locationData[selectedState]![selectedDistrict]![selectedSubDistrict]![selectedBlock]!]
+      : ['Select'];
 
   @override
   void initState() {
     super.initState();
     generatedCaptcha = generateCaptcha();
+    checkIfAlreadyApplied();
+  }
+
+  Future<void> checkIfAlreadyApplied() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('applications')
+          .doc('pmkisan')
+          .get();
+      if (doc.exists) {
+        setState(() {
+          isSubmitted = true;
+        });
+      }
+    }
+  }
+
+  Future<void> submitFormToFirestore() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final data = {
+        'gender': gender,
+        'landHolding': landHolding,
+        'state': selectedState,
+        'district': selectedDistrict,
+        'subDistrict': selectedSubDistrict,
+        'block': selectedBlock,
+        'village': selectedVillage,
+        'submittedAt': Timestamp.now(),
+        'status': 'applied',  // New status field
+        'schemeName': 'PM Kisan',  // New scheme name field
+      };
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('applications')
+          .doc('pmkisan')
+          .set(data);
+
+      setState(() => isSubmitted = true);
+    }
   }
 
   @override
@@ -77,7 +130,9 @@ class _PMKisanFormPageState extends State<PMKisanFormPage> {
 
     return Scaffold(
       appBar: AppBar(title: Text(t.pmKisanRegistration)),
-      body: SingleChildScrollView(
+      body: isSubmitted
+          ? Center(child: Text(t.formAlreadySubmitted, style: const TextStyle(fontSize: 18)))
+          : SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
@@ -188,12 +243,11 @@ class _PMKisanFormPageState extends State<PMKisanFormPage> {
               const SizedBox(height: 30),
               Center(
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       _formKey.currentState!.save();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(t.formSubmittedSuccessfully)),
-                      );
+                      await submitFormToFirestore();
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.formSubmittedSuccessfully)));
                     }
                   },
                   child: Text(t.submit),

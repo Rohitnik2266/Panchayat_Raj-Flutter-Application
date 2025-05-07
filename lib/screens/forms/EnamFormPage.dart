@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ENamFormPage extends StatelessWidget {
   @override
@@ -26,6 +28,7 @@ class _ENamFormContentState extends State<ENamFormContent> {
 
   String selectedOrgType = 'Central';
   String captchaText = generateCaptchaText();
+  bool isSubmitted = false;
 
   static String generateCaptchaText() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -37,6 +40,59 @@ class _ENamFormContentState extends State<ENamFormContent> {
     setState(() {
       captchaText = generateCaptchaText();
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    checkIfAlreadySubmitted();
+  }
+
+  Future<void> checkIfAlreadySubmitted() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('applications')
+        .doc('enam')
+        .get();
+
+    if (doc.exists) {
+      setState(() {
+        isSubmitted = true;
+      });
+    }
+  }
+
+  Future<void> submitForm() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('applications')
+          .doc('enam')
+          .set({
+        'submittedAt': FieldValue.serverTimestamp(),
+        'status': 'applied',
+        'SchemeName': 'eNAM',
+      });
+
+      setState(() {
+        isSubmitted = true;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.formSubmitted)),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.errorSubmittingForm)),
+      );
+    }
   }
 
   @override
@@ -64,11 +120,15 @@ class _ENamFormContentState extends State<ENamFormContent> {
               loginDetailsSection(t),
               SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () {
+                onPressed: isSubmitted
+                    ? () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(t.alreadyApplied)),
+                  );
+                }
+                    : () {
                   if (_formKey.currentState!.validate()) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(t.processingData)),
-                    );
+                    submitForm();
                   }
                 },
                 child: Text(t.submit),

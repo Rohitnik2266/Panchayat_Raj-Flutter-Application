@@ -1,8 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
-import 'dart:io';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class DbtAgricultureFormPage extends StatefulWidget {
@@ -14,170 +13,171 @@ class DbtAgricultureFormPage extends StatefulWidget {
 
 class _DbtAgricultureFormPageState extends State<DbtAgricultureFormPage> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _aadharController = TextEditingController();
-  final TextEditingController _bankController = TextEditingController();
-  final TextEditingController _landController = TextEditingController();
+  final _auth = FirebaseAuth.instance;
+  final _firestore = FirebaseFirestore.instance;
 
-  File? _selectedFile;
-  bool _alreadyApplied = false;
-  bool _canRefill = false;
+  PlatformFile? selectedFile;
+  bool hasApplied = false;
+  bool canRefill = false;
+  bool isLoading = true;
 
-  final user = FirebaseAuth.instance.currentUser;
-  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController mobileController = TextEditingController();
+  final TextEditingController addressController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _checkIfApplied();
+    checkApplicationStatus();
   }
 
-  Future<void> _checkIfApplied() async {
-    final doc = await firestore
-        .collection('applications')
-        .doc(user!.uid)
-        .collection('schemes')
-        .doc('dbt_agriculture')
-        .get();
-
-    if (doc.exists) {
-      setState(() {
-        _alreadyApplied = doc['applied'] ?? false;
-        _canRefill = doc['canRefill'] ?? false;
-      });
+  Future<void> checkApplicationStatus() async {
+    final uid = _auth.currentUser?.uid;
+    if (uid != null) {
+      final doc = await _firestore.collection('users').doc(uid).collection('applications').get();
+      if (doc.docs.any((d) => d.data().containsKey('schemeName') && d['schemeName'] == 'DBT Agriculture')) {
+        setState(() {
+          hasApplied = true;
+        });
+      }
     }
+    setState(() {
+      isLoading = false;
+    });
   }
 
-  Future<void> _submitForm() async {
-    if (_formKey.currentState!.validate() && _selectedFile != null) {
-      final docRef = firestore
-          .collection('applications')
-          .doc(user!.uid)
-          .collection('schemes')
-          .doc('dbt_agriculture');
-
-      await docRef.set({
-        'aadhar': _aadharController.text,
-        'bank': _bankController.text,
-        'land': _landController.text,
-        'fileName': _selectedFile!.path.split('/').last,
-        'applied': true,
-        'canRefill': false,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
-
-      setState(() {
-        _alreadyApplied = true;
-        _canRefill = false;
-      });
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.applied)),
-      );
-      Navigator.pop(context);
-    }
-  }
-
-  Future<void> _pickFile() async {
+  Future<void> pickFile() async {
     final result = await FilePicker.platform.pickFiles();
     if (result != null) {
       setState(() {
-        _selectedFile = File(result.files.single.path!);
+        selectedFile = result.files.first;
       });
+    }
+  }
+
+  Future<void> submitForm() async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return;
+
+    final formData = {
+      'name': nameController.text,
+      'mobile': mobileController.text,
+      'address': addressController.text,
+      'fileName': selectedFile?.name ?? '',
+      'submittedAt': Timestamp.now(),
+    };
+
+    final applicationRef = _firestore.collection('users').doc(uid).collection('applications').doc();
+
+    await applicationRef.set({
+      'schemeName': 'DBT Agriculture',
+      'status': 'applied',
+      'dbt_applied': true,
+      'dbt_canRefill': false,
+      'dbt_form_data': formData,
+    });
+
+    setState(() {
+      hasApplied = true;
+      canRefill = false;
+    });
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.formSubmitted)),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final local = AppLocalizations.of(context)!;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    if (isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (hasApplied && !canRefill) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(local.dbtAgricultureTitle),
+          backgroundColor: Colors.green,
+        ),
+        body: Center(
+          child: Text(
+            local.formAlreadySubmitted,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(local.dbtAgriTitle),
-        backgroundColor: Colors.green[700],
+        title: Text(local.dbtAgricultureTitle),
+        backgroundColor: Colors.green,
       ),
-      body: _alreadyApplied && !_canRefill
-          ? Center(
-        child: Text(
-          local.applied,
-          style: const TextStyle(fontSize: 20),
-        ),
-      )
-          : Padding(
-        padding: const EdgeInsets.all(16.0),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
-          child: ListView(
+          child: Column(
             children: [
-              TextFormField(
-                controller: _aadharController,
-                decoration: InputDecoration(
-                  labelText: 'Aadhaar Number',
-                  labelStyle: TextStyle(
-                      color: isDark ? Colors.white : Colors.black),
-                ),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.length != 12) {
-                    return 'Enter valid 12-digit Aadhaar';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: _bankController,
-                decoration: InputDecoration(
-                  labelText: 'Bank Account Number',
-                  labelStyle: TextStyle(
-                      color: isDark ? Colors.white : Colors.black),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Enter bank account number';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: _landController,
-                decoration: InputDecoration(
-                  labelText: 'Landholding Details',
-                  labelStyle: TextStyle(
-                      color: isDark ? Colors.white : Colors.black),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Enter landholding details';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
+              buildTextField(local.nameLabel, nameController),
+              buildTextField(local.mobile, mobileController, isMobile: true),
+              buildTextField(local.address, addressController),
+              const SizedBox(height: 12),
               ElevatedButton.icon(
-                onPressed: _pickFile,
-                icon: const Icon(Icons.attach_file),
-                label: Text(_selectedFile == null
-                    ? 'Upload Document'
-                    : 'File Selected'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green[600],
-                ),
+                onPressed: pickFile,
+                icon: const Icon(Icons.upload_file),
+                label: Text(local.uploadAadhar),
               ),
+              if (selectedFile != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    selectedFile!.name,
+                    style: TextStyle(color: Theme.of(context).colorScheme.secondary),
+                  ),
+                ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _submitForm,
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    submitForm();
+                  }
+                },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green[800],
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
                 ),
-                child: Text(local.applyNow),
-              )
+                child: Text(local.submit),
+              ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget buildTextField(String label, TextEditingController controller,
+      {bool isMobile = false}) {
+    final local = AppLocalizations.of(context)!;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: isMobile ? TextInputType.phone : TextInputType.text,
+        maxLength: isMobile ? 10 : null,
+        decoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+        ),
+        validator: (value) {
+          if (value == null || value.isEmpty) return local.requiredField;
+          if (isMobile && value.length != 10) return local.invalidMobile;
+          return null;
+        },
       ),
     );
   }

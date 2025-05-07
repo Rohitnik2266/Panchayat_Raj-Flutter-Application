@@ -104,7 +104,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onPressed: () async {
                 await FirebaseAuth.instance.signOut();
                 if (!mounted) return;
-                Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => true);
+                Navigator.pushNamedAndRemoveUntil(context, '/', (route) => true);
               },
             ),
           ],

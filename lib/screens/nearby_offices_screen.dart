@@ -17,7 +17,7 @@ class _NearbyOfficesScreenState extends State<NearbyOfficesScreen> {
   LatLng? _currentLocation;
   final List<LatLng> _officeLocations = [];
 
-  static const String _apiKey = 'AIzaSyCo1FrHmYMc5xyzHuKHpO5KHdriIa3DSPs'; // Replace this
+  static const String _apiKey = 'YOUR_API_KEY_HERE'; // Replace with your real API key
 
   @override
   void initState() {
@@ -26,12 +26,9 @@ class _NearbyOfficesScreenState extends State<NearbyOfficesScreen> {
   }
 
   Future<void> _determinePosition() async {
-    print("Requesting location permission...");
     final permission = await Permission.location.request();
 
     if (permission.isGranted) {
-      print("Location permission granted.");
-      print("Fetching position...");
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
@@ -40,34 +37,27 @@ class _NearbyOfficesScreenState extends State<NearbyOfficesScreen> {
         _currentLocation = LatLng(position.latitude, position.longitude);
       });
 
-      print("User location: $_currentLocation");
       await _getNearbyPanchayatOffices(position.latitude, position.longitude);
     } else {
-      print("Permission denied: $permission");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Location permission denied')),
       );
     }
   }
 
-
   Future<void> _getNearbyPanchayatOffices(double lat, double lng) async {
     final url = Uri.parse(
-      'https://maps.googleapis.com/maps/api/place/nearbysearch/json'
-          '?location=$lat,$lng&radius=3000'
-          '&type=local_government_office'
-          '&keyword=panchayat'
+      'https://maps.googleapis.com/maps/api/place/textsearch/json'
+          '?query=gram+panchayat+office&location=$lat,$lng&radius=5000'
           '&key=$_apiKey',
     );
 
     try {
       final response = await http.get(url);
+      final data = jsonDecode(response.body);
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data['status'] == 'OK') {
         final results = data['results'] as List;
-
-        debugPrint('Found ${results.length} Panchayat offices nearby.');
 
         setState(() {
           _officeLocations.clear();
@@ -79,7 +69,10 @@ class _NearbyOfficesScreenState extends State<NearbyOfficesScreen> {
           }
         });
       } else {
-        debugPrint('Failed to fetch nearby offices: ${response.statusCode}');
+        debugPrint('No Panchayat offices found or error: ${data['status']}');
+        setState(() {
+          _officeLocations.clear();
+        });
       }
     } catch (e) {
       debugPrint('Error fetching Panchayat offices: $e');
@@ -100,7 +93,7 @@ class _NearbyOfficesScreenState extends State<NearbyOfficesScreen> {
           : GoogleMap(
         initialCameraPosition: CameraPosition(
           target: _currentLocation!,
-          zoom: 15,
+          zoom: 14,
         ),
         onMapCreated: (controller) => mapController = controller,
         myLocationEnabled: true,
@@ -119,7 +112,7 @@ class _NearbyOfficesScreenState extends State<NearbyOfficesScreen> {
               markerId: MarkerId(loc.toString()),
               position: loc,
               infoWindow: const InfoWindow(
-                title: 'Panchayat Service Office',
+                title: 'Gram Panchayat Office',
               ),
             ),
           ),

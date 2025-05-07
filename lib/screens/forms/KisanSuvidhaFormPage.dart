@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class KisanSuvidhaFormPage extends StatefulWidget {
   const KisanSuvidhaFormPage({Key? key}) : super(key: key);
@@ -13,11 +15,15 @@ class _KisanSuvidhaFormPageState extends State<KisanSuvidhaFormPage> {
   final _formKey = GlobalKey<FormState>();
   final _captchaController = TextEditingController();
   String _generatedCaptcha = '';
+  bool isLoading = true;
+  bool applied = false;
+  bool canRefill = false;
 
   @override
   void initState() {
     super.initState();
     _generateCaptcha();
+    _checkApplicationStatus();
   }
 
   void _generateCaptcha() {
@@ -27,6 +33,55 @@ class _KisanSuvidhaFormPageState extends State<KisanSuvidhaFormPage> {
       return chars[rand.nextInt(chars.length)];
     }).join();
     setState(() {});
+  }
+
+  Future<void> _checkApplicationStatus() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .collection('applications')
+          .doc('KisanSuvidha')
+          .get();
+
+      if (doc.exists) {
+        final data = doc.data();
+        if (data != null && data['applied'] == true) {
+          setState(() {
+            applied = true;
+            canRefill = data['canRefill'] ?? false;
+          });
+        }
+      }
+    }
+    setState(() => isLoading = false);
+  }
+
+  Future<void> _submitForm() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    final applicationRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('applications')
+        .doc('KisanSuvidha');
+
+    await applicationRef.set({
+      'status': 'applied', // Added the status field
+      'schemeName': 'KisanSuvidha', // Added the schemeName field
+      'applied': true,
+      'canRefill': false,
+      'submittedAt': Timestamp.now(),
+    }, SetOptions(merge: true));
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("${AppLocalizations.of(context)!.success}: ${AppLocalizations.of(context)!.formSubmittedSuccessfully}")),
+      );
+      Navigator.pop(context, true);
+    }
   }
 
   @override
@@ -41,6 +96,17 @@ class _KisanSuvidhaFormPageState extends State<KisanSuvidhaFormPage> {
     final textColor = theme.brightness == Brightness.dark ? Colors.white : Colors.black;
     final t = AppLocalizations.of(context)!;
 
+    if (isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (applied && !canRefill) {
+      return Scaffold(
+        appBar: AppBar(title: Text(t.kisanSuvidhaForm), backgroundColor: Colors.green),
+        body: Center(child: Text(t.alreadyApplied)),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(t.kisanSuvidhaForm),
@@ -53,7 +119,7 @@ class _KisanSuvidhaFormPageState extends State<KisanSuvidhaFormPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(t.farmerDetails, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.green)),
+              Text(t.farmerDetails, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.green)),
               _buildTextField(t.fullName, t.enterFullName),
               _buildTextField(t.relativeName, t.enterRelativeName),
               _buildTextField(t.mobileNumber, t.enterMobileNumber, TextInputType.phone),
@@ -62,7 +128,7 @@ class _KisanSuvidhaFormPageState extends State<KisanSuvidhaFormPage> {
               _buildDropdownField(t.farmerType, [t.marginal, t.small, t.large], t.selectFarmerType),
 
               const SizedBox(height: 20),
-              Text(t.accountDetails, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.green)),
+              Text(t.accountDetails, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.green)),
               _buildTextField(t.ifsc, t.enterIFSC),
               _buildTextField(t.accountNumber, t.enterAccountNumber, TextInputType.number),
               _buildTextField(t.confirmAccountNumber, t.confirmAccountNumber, TextInputType.number),
@@ -112,10 +178,7 @@ class _KisanSuvidhaFormPageState extends State<KisanSuvidhaFormPage> {
                 child: ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
-                      // Firebase logic can be added here
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("${t.success}: ${t.formSubmittedSuccessfully}")),
-                      );
+                      _submitForm();
                     }
                   },
                   child: Text(t.submit),

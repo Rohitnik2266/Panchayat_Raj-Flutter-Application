@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart'; // Localization import
 
 class FeedbackScreen extends StatefulWidget {
   const FeedbackScreen({super.key});
@@ -19,7 +20,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
 
     if (feedbackText.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter your feedback")),
+        SnackBar(content: Text(AppLocalizations.of(context)!.pleaseEnterFeedback)),
       );
       return;
     }
@@ -27,44 +28,51 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
     try {
       User? user = _auth.currentUser;
       if (user != null) {
-        // Fetch user's name from Firestore
-        DocumentSnapshot userDoc =
-        await _firestore.collection('users').doc(user.uid).get();
-
-        String userName = userDoc.exists ? (userDoc['name'] ?? "Anonymous") : "Anonymous";
-
-        // Save feedback with name, uid, and timestamp
-        await _firestore.collection('feedbacks').add({
-          'uid': user.uid,
-          'name': userName, // Store the user's name
+        await _firestore
+            .collection('users')
+            .doc(user.uid)
+            .collection('feedbacks')
+            .add({
           'feedback': feedbackText,
           'timestamp': FieldValue.serverTimestamp(),
         });
 
-        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Feedback submitted successfully!")),
+          SnackBar(content: Text(AppLocalizations.of(context)!.feedbackSubmitted)),
         );
 
-        _feedbackController.clear(); // Clear input field after submission
+        _feedbackController.clear();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("User not logged in!")),
+          SnackBar(content: Text(AppLocalizations.of(context)!.userNotLoggedIn)),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error submitting feedback: $e")),
+        SnackBar(
+          content: Text("${AppLocalizations.of(context)!.errorSubmittingFeedback} $e"),
+        ),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final local = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Send Feedback'),
-        backgroundColor: Colors.blue, // AppBar color
+        title: Text(
+          local.sendFeedback,
+          style: theme.textTheme.titleLarge?.copyWith(
+            color: theme.appBarTheme.foregroundColor ?? Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: theme.appBarTheme.backgroundColor ?? theme.primaryColor,
+        foregroundColor: theme.appBarTheme.foregroundColor ?? Colors.white,
+        centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -72,16 +80,37 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
           children: [
             TextField(
               controller: _feedbackController,
-              decoration: const InputDecoration(
-                labelText: 'Your Feedback',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: local.yourFeedback,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                filled: true,
+                fillColor: theme.cardColor,
               ),
               maxLines: 5,
+              style: TextStyle(color: theme.textTheme.bodyLarge?.color),
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _submitFeedback,
-              child: const Text('Submit'),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: _submitFeedback,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.primaryColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  local.submit,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: theme.primaryTextTheme.labelLarge?.color ?? Colors.white,
+                  ),
+                ),
+              ),
             ),
           ],
         ),

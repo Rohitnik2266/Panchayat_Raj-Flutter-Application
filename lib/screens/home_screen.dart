@@ -17,7 +17,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   String _userName = "Loading...";
-  final String _userPhone = "Apke Sewa Mai Hagir Hai 🙏🏻";
+  final String _userPhone = "Apke Sewa Mai Hajir Hai 🙏🏻";
 
   final List<Widget> _screens = [
     const Dashboard(),

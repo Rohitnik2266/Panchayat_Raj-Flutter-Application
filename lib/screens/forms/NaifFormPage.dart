@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class NaifFormPage extends StatelessWidget {
   @override
@@ -20,6 +22,8 @@ class NaifFormContent extends StatefulWidget {
 class _NaifFormContentState extends State<NaifFormContent> {
   final _formKey = GlobalKey<FormState>();
   String _captcha = generateCaptcha();
+  bool _isApplied = false;
+  final _uid = FirebaseAuth.instance.currentUser!.uid;
 
   static String generateCaptcha() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -30,6 +34,51 @@ class _NaifFormContentState extends State<NaifFormContent> {
     setState(() {
       _captcha = generateCaptcha();
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _checkIfApplied();
+  }
+
+  Future<void> _checkIfApplied() async {
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(_uid)
+        .collection('applications')
+        .doc('naif')
+        .get();
+
+    if (doc.exists) {
+      setState(() {
+        _isApplied = true;
+      });
+    }
+  }
+
+  Future<void> _submitForm() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    // You can extract and structure field values here before storing
+    final data = {
+      'submittedAt': Timestamp.now(),
+      'scheme': 'naif',
+      'uid': _uid,
+    };
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(_uid)
+        .collection('applications')
+        .doc('naif')
+        .set(data);
+
+    setState(() {
+      _isApplied = true;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.formSubmitted)));
   }
 
   @override
@@ -145,12 +194,8 @@ class _NaifFormContentState extends State<NaifFormContent> {
             Row(
               children: [
                 ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.formSubmitted)));
-                    }
-                  },
-                  child: Text(t.submit),
+                  onPressed: _isApplied ? null : _submitForm,
+                  child: Text(_isApplied ? t.alreadyApplied : t.submit),
                 ),
                 SizedBox(width: 10),
                 OutlinedButton(

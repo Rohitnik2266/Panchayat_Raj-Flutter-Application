@@ -7,6 +7,7 @@ import 'package:panchayat_raj/screens/otp_screen.dart';
 import 'package:panchayat_raj/screens/signup_screen.dart';
 import 'package:provider/provider.dart';
 import '../theme_provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -91,7 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
-          "Login",
+          AppLocalizations.of(context)!.login, // Localized login text
           style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -113,7 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 30),
                 Text(
-                  "Login with Registered Number",
+                  AppLocalizations.of(context)!.loginWithRegisteredNumber, // Localized text
                   textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(
                     fontSize: 20,
@@ -127,7 +128,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   keyboardType: TextInputType.phone,
                   maxLength: 10,
                   decoration: InputDecoration(
-                    labelText: "Enter 10-digit phone number",
+                    labelText: AppLocalizations.of(context)!.enterPhoneNumber, // Localized label
                     prefixIcon: Icon(Icons.phone_android,
                         color: Theme.of(context).textTheme.bodyLarge?.color),
                     filled: true,
@@ -160,7 +161,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
                         : Text(
-                      "Send OTP",
+                      AppLocalizations.of(context)!.sendOtp, // Localized Send OTP
                       style: GoogleFonts.poppins(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -174,7 +175,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "Don't have an account?",
+                      AppLocalizations.of(context)!.dontHaveAccount, // Localized text
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         color: Theme.of(context).textTheme.bodyLarge?.color,
@@ -190,7 +191,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         );
                       },
                       child: Text(
-                        "Sign up",
+                        AppLocalizations.of(context)!.signUp, // Localized text for Sign Up
                         style: GoogleFonts.poppins(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,

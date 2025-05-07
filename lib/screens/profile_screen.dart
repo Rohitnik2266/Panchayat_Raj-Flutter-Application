@@ -48,20 +48,42 @@ class _ProfileState extends State<Profile> {
     final picked = await picker.pickImage(source: ImageSource.gallery);
 
     if (picked != null) {
-      final file = File(picked.path);
-      final storageRef =
-      FirebaseStorage.instance.ref().child('profile_photos/${user.uid}.jpg');
-      await storageRef.putFile(file);
+      try {
+        setState(() => isLoading = true);
 
-      final url = await storageRef.getDownloadURL();
+        final file = File(picked.path);
+        final storageRef = FirebaseStorage.instance
+            .ref()
+            .child('profile_photos')
+            .child('${user.uid}.jpg');
 
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
-        'profilePhoto': url,
-      });
+        // Upload file with metadata
+        final uploadTask = await storageRef.putFile(
+          file,
+          SettableMetadata(contentType: 'image/jpeg'),
+        );
 
-      setState(() {
-        imageUrl = url;
-      });
+        final downloadUrl = await uploadTask.ref.getDownloadURL();
+
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .update({'profilePhoto': downloadUrl});
+
+        setState(() {
+          imageUrl = downloadUrl;
+          isLoading = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profile photo updated successfully')),
+        );
+      } on FirebaseException catch (e) {
+        setState(() => isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Upload failed: ${e.message}')),
+        );
+      }
     }
   }
 
@@ -103,13 +125,15 @@ class _ProfileState extends State<Profile> {
                             radius: 40,
                             backgroundImage: imageUrl != null
                                 ? NetworkImage(imageUrl!)
-                                : const AssetImage('assets/images/default_profile.png')
+                                : const AssetImage(
+                                'assets/images/default_profile.png')
                             as ImageProvider,
                           ),
                           const CircleAvatar(
                             radius: 12,
                             backgroundColor: Colors.white,
-                            child: Icon(Icons.edit, size: 16, color: Colors.black),
+                            child: Icon(Icons.edit,
+                                size: 16, color: Colors.black),
                           ),
                         ],
                       ),
@@ -159,11 +183,13 @@ class _ProfileState extends State<Profile> {
     return ListTile(
       leading: Icon(icon, color: isDarkMode ? Colors.white : Colors.blueGrey),
       title: Text(title,
-          style: TextStyle(color: isDarkMode ? Colors.white : Colors.black)),
+          style:
+          TextStyle(color: isDarkMode ? Colors.white : Colors.black)),
       subtitle: Text(subtitle,
           style: TextStyle(
               color: isDarkMode ? Colors.grey[400] : Colors.grey[600])),
-      trailing: trailing ?? const Icon(Icons.arrow_forward_ios, color: Colors.grey),
+      trailing: trailing ??
+          const Icon(Icons.arrow_forward_ios, color: Colors.grey),
       onTap: onTap,
     );
   }

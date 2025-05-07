@@ -7,6 +7,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:panchayat_raj/screens/nearby_offices_screen.dart';
 import 'package:panchayat_raj/screens/profile_screen.dart';
 import 'package:panchayat_raj/screens/scheme_screen.dart';
+import 'package:panchayat_raj/screens/track_status.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -169,7 +170,15 @@ class HomeScreen extends StatelessWidget {
 
                         return InkWell(
                           onTap: () {
-                            if (labelKey == 'nearbyServices') {
+                            if (labelKey == 'trackApplication') {
+                              // Navigate to TrackStatusScreen
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const TrackStatusScreen(),
+                                ),
+                              );
+                            } else if (labelKey == 'nearbyServices') {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(

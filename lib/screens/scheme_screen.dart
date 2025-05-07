@@ -10,9 +10,6 @@ import 'package:panchayat_raj/screens/schemes/acabcpage.dart';
 import 'package:panchayat_raj/screens/schemes/kisansuvidhapage.dart';
 import 'package:panchayat_raj/screens/schemes/mkisanpage.dart';
 import 'package:panchayat_raj/screens/schemes/pmkusumpage.dart';
-import 'package:panchayat_raj/screens/schemes/kayakamitrapage.dart';
-import 'package:panchayat_raj/screens/schemes/ShivSanmanPage.dart';
-import 'package:panchayat_raj/screens/schemes/MahaDBTMechanizationPage.dart';
 import 'package:panchayat_raj/screens/schemes/DbtAgriculturePage.dart';
 import 'package:panchayat_raj/screens/schemes/NaifPage.dart';
 
@@ -36,7 +33,7 @@ class SchemeListPage extends StatelessWidget {
         'page': const PmksyPage()
       },
       {
-        'title': t.pmfbyTitle,
+        'title': t.pmfbyTitle1,
         'description': t.pmfbyDescription,
         'page': const PmfbYPage()
       },
@@ -80,25 +77,11 @@ class SchemeListPage extends StatelessWidget {
         'description': t.soilhealthDescription,
         'page': const SoilHealthCardPage()
       },
-      {
-        'title': t.kayakamitraTitle,
-        'description': t.kayakamitraDescription,
-        'page': const KayakaMitraPage()
-      },
+
       {
         'title': t.mkisanTitle,
         'description': t.mkisanDescription,
         'page': const MKisanPage()
-      },
-      {
-        'title': t.shivsanmanTitle,
-        'description': t.shivsanmanDescription,
-        'page': const ShivSanmanPage()
-      },
-      {
-        'title': t.mahadbtTitle,
-        'description': t.mahadbtDescription,
-        'page': const MahaDBTMechanizationPage()
       },
     ];
 

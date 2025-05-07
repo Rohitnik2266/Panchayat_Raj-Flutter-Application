@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:panchayat_raj/screens/home_screen.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class OtpScreen extends StatefulWidget {
   final String verificationId;
@@ -37,8 +38,7 @@ class _OtpScreenState extends State<OtpScreen> {
 
       if (user != null) {
         final uid = user.uid;
-        final userDoc =
-        FirebaseFirestore.instance.collection('users').doc(uid);
+        final userDoc = FirebaseFirestore.instance.collection('users').doc(uid);
 
         // Check if user data already exists
         final doc = await userDoc.get();
@@ -58,7 +58,7 @@ class _OtpScreenState extends State<OtpScreen> {
     } catch (e) {
       log(e.toString());
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Invalid OTP. Try again.")),
+        SnackBar(content: Text(AppLocalizations.of(context)!.invalidOtpMessage)), // Localized message
       );
     }
   }
@@ -71,7 +71,7 @@ class _OtpScreenState extends State<OtpScreen> {
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
-          "Enter OTP",
+          AppLocalizations.of(context)!.enterOtpTitle, // Localized text
           style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -99,7 +99,7 @@ class _OtpScreenState extends State<OtpScreen> {
                 ),
                 const SizedBox(height: 30),
                 Text(
-                  "Enter the OTP sent to your phone",
+                  AppLocalizations.of(context)!.enterOtpMessage, // Localized text
                   textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(
                     fontSize: 20,
@@ -114,7 +114,7 @@ class _OtpScreenState extends State<OtpScreen> {
                   textAlign: TextAlign.center,
                   maxLength: 6,
                   decoration: InputDecoration(
-                    labelText: "OTP",
+                    labelText: AppLocalizations.of(context)!.otpLabel, // Localized text
                     prefixIcon: Icon(Icons.lock, color: theme.iconTheme.color),
                     filled: true,
                     fillColor: theme.cardColor,
@@ -139,7 +139,7 @@ class _OtpScreenState extends State<OtpScreen> {
                       ),
                     ),
                     child: Text(
-                      "Verify OTP",
+                      AppLocalizations.of(context)!.verifyOtpButton, // Localized text
                       style: GoogleFonts.poppins(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,

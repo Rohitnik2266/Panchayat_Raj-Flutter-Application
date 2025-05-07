@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart'; // Localization import
 import 'otp_screen.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -35,7 +36,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
       if (query.docs.isNotEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Phone number is already registered")),
+          SnackBar(content: Text(AppLocalizations.of(context)!.phoneNumberAlreadyRegistered)),
         );
         setState(() => isLoading = false);
         return;
@@ -47,7 +48,7 @@ class _SignupScreenState extends State<SignupScreen> {
         verificationCompleted: (PhoneAuthCredential credential) {},
         verificationFailed: (FirebaseAuthException e) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Verification failed: ${e.message}")),
+            SnackBar(content: Text(AppLocalizations.of(context)!.verificationFailed(e.message ?? 'Unknown error'))),
           );
           setState(() => isLoading = false);
         },
@@ -68,7 +69,7 @@ class _SignupScreenState extends State<SignupScreen> {
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: ${e.toString()}")),
+        SnackBar(content: Text(AppLocalizations.of(context)!.errorOccurred)),
       );
       setState(() => isLoading = false);
     }
@@ -100,9 +101,11 @@ class _SignupScreenState extends State<SignupScreen> {
                 const SizedBox(height: 50),
                 TextFormField(
                   controller: nameController,
-                  validator: (value) => value!.isEmpty ? "Enter your full name" : null,
+                  validator: (value) => value!.isEmpty
+                      ? AppLocalizations.of(context)!.enterFullName
+                      : null,
                   decoration: InputDecoration(
-                    labelText: "Full Name",
+                    labelText: AppLocalizations.of(context)!.fullName,
                     prefixIcon: Icon(Icons.person, color: theme.iconTheme.color),
                     filled: true,
                     fillColor: theme.cardColor,
@@ -117,9 +120,11 @@ class _SignupScreenState extends State<SignupScreen> {
                 TextFormField(
                   controller: numberController,
                   keyboardType: TextInputType.phone,
-                  validator: (value) => value!.length != 10 ? "Enter a valid phone number" : null,
+                  validator: (value) => value!.length != 10
+                      ? AppLocalizations.of(context)!.enterValidPhoneNumber
+                      : null,
                   decoration: InputDecoration(
-                    labelText: "Phone Number",
+                    labelText: AppLocalizations.of(context)!.phoneNumber,
                     prefixText: "+91 ",
                     prefixIcon: Icon(Icons.phone, color: theme.iconTheme.color),
                     filled: true,
@@ -146,7 +151,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     child: isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
                         : Text(
-                      "Sign Up",
+                      AppLocalizations.of(context)!.signup,
                       style: GoogleFonts.poppins(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -160,7 +165,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "Already have an account? ",
+                      AppLocalizations.of(context)!.alreadyHaveAccount,
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         color: theme.textTheme.bodyLarge?.color,
@@ -169,7 +174,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     GestureDetector(
                       onTap: () => Navigator.pop(context),
                       child: Text(
-                        "Login",
+                        AppLocalizations.of(context)!.login,
                         style: GoogleFonts.poppins(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,

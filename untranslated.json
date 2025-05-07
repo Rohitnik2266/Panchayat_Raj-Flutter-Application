@@ -1,0 +1,34 @@
+{
+  "kn": [
+    "description",
+    "pmfbyAbout",
+    "cropInsurance",
+    "cropInsuranceDesc",
+    "financialStability",
+    "financialStabilityDesc",
+    "modernTechniques",
+    "modernTechniquesDesc",
+    "pmfbyEligibility",
+    "pmfbyApplicationProcess",
+    "dbtAgriTitle",
+    "dbtAgriAbout",
+    "dbtAgriBenefit1Title",
+    "dbtAgriBenefit1Desc",
+    "dbtAgriBenefit2Title",
+    "dbtAgriBenefit2Desc",
+    "dbtAgriBenefit3Title",
+    "dbtAgriBenefit3Desc",
+    "dbtAgriEligibility",
+    "dbtAgriApplySteps"
+  ],
+
+  "mr": [
+    "description",
+    "aboutContent",
+    "eligibilityDetails",
+    "registerNow",
+    "organisationName",
+    "refillAllowed",
+    "uploadFile"
+  ]
+}

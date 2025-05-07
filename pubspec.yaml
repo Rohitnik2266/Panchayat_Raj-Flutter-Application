@@ -30,10 +30,11 @@ environment:
 dependencies:
   provider: ^6.1.2
 
-  file_picker: ^6.1.1
+
 
   flutter:
     sdk: flutter
+  file_picker: ^6.1.1
   google_fonts: ^6.1.0
   google_maps_flutter: ^2.5.0
   geolocator: ^10.1.0
@@ -42,13 +43,14 @@ dependencies:
   carousel_slider: ^5.0.0
   flutter_localizations:
     sdk: flutter
-  firebase_core: ^2.14.0
-  firebase_auth: ^4.16.0
-  firebase_database: ^10.5.7
-  cloud_firestore: ^4.17.5
+  firebase_core: ^2.27.0
+  firebase_auth: ^4.17.7
+  firebase_database: ^10.4.7
+  cloud_firestore: ^4.15.7
   cupertino_icons: ^1.0.8
   image_picker: ^1.0.7
   firebase_storage: ^11.6.7
+  path_provider: ^2.1.2
 
 
 dev_dependencies:
@@ -87,14 +89,6 @@ flutter:
   assets:
       - assets/images/
       - assets/holder/
-  plugin:
-    platforms:
-          linux:
-            default_package: none
-          macos:
-            default_package: none
-          windows:
-            default_package: none
   generate: true
 
 

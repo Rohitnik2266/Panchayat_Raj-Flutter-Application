@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class PkvFormPage extends StatefulWidget {
@@ -11,12 +13,11 @@ class PkvFormPage extends StatefulWidget {
 
 class _PkvFormPageState extends State<PkvFormPage> {
   final _formKey = GlobalKey<FormState>();
-
   String? aadharFile, landDocFile, bankPassbookFile;
   String generatedCaptcha = '';
   final TextEditingController _captchaController = TextEditingController();
-
   bool agree = false;
+  bool isSubmitting = false;
 
   @override
   void initState() {
@@ -41,6 +42,52 @@ class _PkvFormPageState extends State<PkvFormPage> {
         if (field == "land") landDocFile = path;
         if (field == "bank") bankPassbookFile = path;
       });
+    }
+  }
+
+  Future<void> submitForm() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('User not logged in')));
+      return;
+    }
+
+    final uid = user.uid;
+    final userDoc = FirebaseFirestore.instance.collection('users').doc(uid);
+    final applicationRef = userDoc.collection('applications').doc('pkv_form');
+
+    // Check if the user has already applied
+    final docSnapshot = await applicationRef.get();
+    if (docSnapshot.exists && docSnapshot.data()?['alreadyApplied'] == true) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('You have already submitted the form.')));
+      return;
+    }
+
+    // Submit the form data
+    try {
+      await applicationRef.set({
+        'fullName': 'John Doe',  // Replace with the actual form field value
+        'aadharNumber': '123456789012',  // Replace with the actual form field value
+        'landSize': '5',  // Replace with the actual form field value
+        'irrigationType': 'Drip',  // Replace with the actual form field value
+        'cropType': 'Rice',  // Replace with the actual form field value
+        'waterSource': 'Well',  // Replace with the actual form field value
+        'needLoan': 'Yes',  // Replace with the actual form field value
+        'bankAccountNumber': '1234567890123456',  // Replace with the actual form field value
+        'ifscCode': 'XYZ1234567',  // Replace with the actual form field value
+        'aadharFile': aadharFile,
+        'landDocFile': landDocFile,
+        'bankPassbookFile': bankPassbookFile,
+        'captcha': generatedCaptcha,
+        'agree': agree,
+        'alreadyApplied': true,  // Mark the form as already applied
+        'status': 'applied',  // Add the status field
+        'schemeName': 'PKV Scheme',  // Add the scheme name (replace with the actual scheme name)
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Application submitted successfully!')));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error submitting form: $e')));
     }
   }
 
@@ -96,14 +143,23 @@ class _PkvFormPageState extends State<PkvFormPage> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: isSubmitting
+                      ? null
+                      : () {
                     if (_formKey.currentState!.validate() && agree) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(t.formSuccess)),
-                      );
+                      setState(() {
+                        isSubmitting = true;
+                      });
+                      submitForm().then((_) {
+                        setState(() {
+                          isSubmitting = false;
+                        });
+                      });
                     }
                   },
-                  child: Text(t.submitApplication),
+                  child: isSubmitting
+                      ? CircularProgressIndicator()
+                      : Text(t.submitApplication),
                 ),
               )
             ],

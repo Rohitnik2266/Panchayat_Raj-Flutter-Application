@@ -7,3 +7,4 @@ preferred-supported-locales:
   - en
   - mr
   - kn
+untranslated-messages-file: untranslated.json

@@ -1,88 +1,150 @@
-
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-class NafedFormPage extends StatefulWidget {
-  const NafedFormPage({super.key});
+class MkisanFormPage extends StatefulWidget {
+  const MkisanFormPage({super.key});
 
   @override
-  State<NafedFormPage> createState() => _NafedFormPageState();
+  _MkisanFormPageState createState() => _MkisanFormPageState();
 }
 
-class _NafedFormPageState extends State<NafedFormPage> {
+class _MkisanFormPageState extends State<MkisanFormPage> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _detailsController = TextEditingController();
+  String? name, mobile, state, district, gender, qualification;
+  bool _isSubmitted = false;
+  bool _canRefill = false;
 
-  bool _submitted = false;
+  final _auth = FirebaseAuth.instance;
+  final _firestore = FirebaseFirestore.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkIfAlreadySubmitted();
+  }
+
+  Future<void> _checkIfAlreadySubmitted() async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return;
+
+    final docRef = _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('applications')
+        .doc('mkisan');
+
+    final doc = await docRef.get();
+
+    if (doc.exists) {
+      setState(() {
+        _isSubmitted = true;
+        _canRefill = doc.data()?['canRefill'] == true;
+      });
+    }
+  }
 
   Future<void> _submitForm() async {
-    if (_formKey.currentState!.validate()) {
-      final uid = FirebaseAuth.instance.currentUser?.uid;
-      if (uid == null) return;
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return;
 
-      final docRef = FirebaseFirestore.instance
-          .collection('applications')
-          .doc(uid)
-          .collection('nafed')
-          .doc('form');
+    final data = {
+      'name': name,
+      'mobile': mobile,
+      'gender': gender,
+      'state': state,
+      'district': district,
+      'qualification': qualification,
+      'submittedAt': FieldValue.serverTimestamp(),
+      'status': 'applied',
+      'schemeName': 'M-Kisan', // ✅ This makes it show up correctly in TrackStatusScreen
+      'canRefill': false,
+    };
 
-      final snapshot = await docRef.get();
-      if (snapshot.exists) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Already applied for this scheme.')),
-        );
-        return;
-      }
+    await _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('applications')
+        .doc('mkisan')
+        .set(data);
 
-      await docRef.set({
-        'name': _nameController.text,
-        'details': _detailsController.text,
-        'submittedAt': FieldValue.serverTimestamp(),
-      });
-
-      setState(() => _submitted = true);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Application submitted successfully.')),
-      );
-    }
+    setState(() {
+      _isSubmitted = true;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_submitted) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Nafed Form')),
-        body: const Center(child: Text('Form already submitted.')),
-      );
-    }
+    final local = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Nafed Form')),
+      appBar: AppBar(title: Text(local.scheme_name)),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Form(
+        child: _isSubmitted && !_canRefill
+            ? Center(
+          child: Text(
+            local.alreadyApplied,
+            style: const TextStyle(fontSize: 18, color: Colors.green),
+          ),
+        )
+            : Form(
           key: _formKey,
-          child: Column(
+          child: ListView(
             children: [
               TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Full Name'),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Enter your name' : null,
+                decoration:
+                InputDecoration(labelText: local.mobileNumber),
+                keyboardType: TextInputType.phone,
+                validator: (value) => value!.length == 10
+                    ? null
+                    : local.validPhoneNumber,
+                onSaved: (value) => mobile = value,
               ),
-              const SizedBox(height: 16),
               TextFormField(
-                controller: _detailsController,
-                decoration: const InputDecoration(labelText: 'Details'),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Enter details' : null,
+                decoration: InputDecoration(labelText: local.name),
+                onSaved: (value) => name = value,
               ),
-              const SizedBox(height: 24),
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(labelText: local.gender),
+                items: [
+                  local.male,
+                  local.female,
+                  local.other,
+                ]
+                    .map((g) =>
+                    DropdownMenuItem(value: g, child: Text(g)))
+                    .toList(),
+                onChanged: (val) => gender = val,
+              ),
+              TextFormField(
+                decoration: InputDecoration(labelText: local.state),
+                onSaved: (value) => state = value,
+              ),
+              TextFormField(
+                decoration: InputDecoration(labelText: local.district),
+                onSaved: (value) => district = value,
+              ),
+              TextFormField(
+                decoration:
+                InputDecoration(labelText: local.qualification),
+                onSaved: (value) => qualification = value,
+              ),
+              const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: _submitForm,
-                child: const Text('Submit'),
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    _formKey.currentState!.save();
+                    await _submitForm();
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(local.formSubmitted)),
+                      );
+                    }
+                  }
+                },
+                child: Text(local.submit),
               ),
             ],
           ),

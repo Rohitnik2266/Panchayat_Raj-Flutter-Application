@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -22,11 +24,61 @@ class _PmKusumFormPageState extends State<PmKusumFormPage> {
   final bankDetailsController = TextEditingController();
   final captchaController = TextEditingController();
 
-  void handleSubmit(BuildContext context) {
-    final t = AppLocalizations.of(context)!;
+  // Firebase Auth and Firestore instances
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  void handleSubmit(BuildContext context) async {
+    final t = AppLocalizations.of(context)!;
+    final currentUser = _auth.currentUser;
+
+    if (currentUser == null) {
+      // Handle the case where the user is not authenticated
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(t.notAuthenticated)));
+      return;
+    }
+
+    // Check if the user has already submitted the form
+    DocumentReference userDoc = _firestore.collection('users').doc(currentUser.uid);
+    DocumentSnapshot userSnapshot = await userDoc.get();
+
+    if (userSnapshot.exists && userSnapshot.get('applications.pmKusum') == true) {
+      // Show a dialog indicating the form has already been submitted
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: Text(t.alreadyApplied),
+          content: Text(t.youHaveAlreadySubmittedTheForm),
+          actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text("OK"))],
+        ),
+      );
+      return;
+    }
+
+    // Validate form and captcha
     if (_formKey.currentState!.validate()) {
       if (captchaController.text.trim() == captchaCode) {
+        // Save data to Firestore
+        await userDoc.collection('applications').doc('pmKusum').set({
+          'name': nameController.text,
+          'email': emailController.text,
+          'phone': phoneController.text,
+          'landArea': landAreaController.text,
+          'infraDetails': infraDetailsController.text,
+          'projectCost': projectCostController.text,
+          'loanAmount': loanAmountController.text,
+          'bankDetails': bankDetailsController.text,
+          'submittedAt': Timestamp.now(),
+          'status': 'applied', // Added status field
+          'schemeName': 'pmKusum', // Added schemeName field
+        });
+
+        // Mark form as submitted in Firestore
+        await userDoc.update({
+          'applications.pmKusum': true,
+        });
+
+        // Show success dialog
         showDialog(
           context: context,
           builder: (_) => AlertDialog(
@@ -36,6 +88,7 @@ class _PmKusumFormPageState extends State<PmKusumFormPage> {
           ),
         );
       } else {
+        // Show captcha error
         showDialog(
           context: context,
           builder: (_) => AlertDialog(
