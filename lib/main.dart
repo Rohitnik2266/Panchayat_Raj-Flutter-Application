@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:panchayat_raj/screens/documents_screen.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
 import 'theme_provider.dart';
@@ -92,6 +93,7 @@ class _MyAppState extends State<MyApp> {
             '/submit_application': (context) => const SubmitApplicationScreen(),
             '/track_status': (context) => const TrackStatusScreen(),
             '/notifications': (context) => const NotificationsScreen(),
+            '/documents': (context) => const DocumentsScreen(),
             '/profile_screen': (context) => const Profile(),
             '/schemes': (context) => const SchemeListPage(),
             '/settings': (context) => const SettingsScreen(),

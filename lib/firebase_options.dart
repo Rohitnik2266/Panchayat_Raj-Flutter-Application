@@ -41,8 +41,8 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBEKHER1hLFM9wVA6zrYsSbJQboxqqYkI4',
-    appId: '1:819357841365:web:8129956b8eeb60d83fef5c',
+    apiKey: 'YOUR_API_KEY_HERE',
+    appId: 'YOUR_APP_ID_HERE',
     messagingSenderId: '819357841365',
     projectId: 'panchayat-raj-de3bf',
     authDomain: 'panchayat-raj-de3bf.firebaseapp.com',
@@ -51,16 +51,16 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCo1FrHmYMc5xyzHuKHpO5KHdriIa3DSPs',
-    appId: '1:819357841365:android:13db313242cfaf9f3fef5c',
+    apiKey: 'YOUR_API_KEY_HERE',
+    appId: 'YOUR_APP_ID_HERE',
     messagingSenderId: '819357841365',
     projectId: 'panchayat-raj-de3bf',
     storageBucket: 'panchayat-raj-de3bf.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDi9AVAR5sunUl1YYTU0xuXmy85cPhTZvo',
-    appId: '1:819357841365:ios:498c0470b7205bc23fef5c',
+    apiKey: 'YOUR_API_KEY_HERE',
+    appId: 'YOUR_APP_ID_HERE',
     messagingSenderId: '819357841365',
     projectId: 'panchayat-raj-de3bf',
     storageBucket: 'panchayat-raj-de3bf.firebasestorage.app',
@@ -68,8 +68,8 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyDi9AVAR5sunUl1YYTU0xuXmy85cPhTZvo',
-    appId: '1:819357841365:ios:498c0470b7205bc23fef5c',
+    apiKey: 'YOUR_API_KEY_HERE',
+    appId: 'YOUR_APP_ID_HERE',
     messagingSenderId: '819357841365',
     projectId: 'panchayat-raj-de3bf',
     storageBucket: 'panchayat-raj-de3bf.firebasestorage.app',
@@ -77,8 +77,8 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyBEKHER1hLFM9wVA6zrYsSbJQboxqqYkI4',
-    appId: '1:819357841365:web:0500e5d7974047763fef5c',
+    apiKey: 'YOUR_API_KEY_HERE',
+    appId: 'YOUR_APP_ID_HERE',
     messagingSenderId: '819357841365',
     projectId: 'panchayat-raj-de3bf',
     authDomain: 'panchayat-raj-de3bf.firebaseapp.com',

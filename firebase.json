@@ -1,1 +1,38 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"panchayat-raj-de3bf","appId":"1:819357841365:android:13db313242cfaf9f3fef5c","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"panchayat-raj-de3bf","configurations":{"android":"1:819357841365:android:13db313242cfaf9f3fef5c","ios":"1:819357841365:ios:498c0470b7205bc23fef5c","macos":"1:819357841365:ios:498c0470b7205bc23fef5c","web":"1:819357841365:web:8129956b8eeb60d83fef5c","windows":"1:819357841365:web:0500e5d7974047763fef5c"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "panchayat-raj-de3bf",
+          "appId": "1:819357841365:android:13db313242cfaf9f3fef5c",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "panchayat-raj-de3bf",
+          "configurations": {
+            "android": "1:819357841365:android:13db313242cfaf9f3fef5c",
+            "ios": "1:819357841365:ios:498c0470b7205bc23fef5c",
+            "macos": "1:819357841365:ios:498c0470b7205bc23fef5c",
+            "web": "1:819357841365:web:8129956b8eeb60d83fef5c",
+            "windows": "1:819357841365:web:0500e5d7974047763fef5c"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    }
+  ]
+}

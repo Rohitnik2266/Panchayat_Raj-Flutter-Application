@@ -41,3 +41,36 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Flutter build files
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+generated_plugin_registrant.dart
+
+# Firebase config files (DO NOT COMMIT)
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+lib/firebase_options.dart
+
+# VSCode and IntelliJ config files
+.vscode/
+.idea/
+*.iml
+
+# macOS specific
+.DS_Store
+
+# Logs
+*.log
+
+# Environment or secrets
+.env
+.env.*
+
+# Optional if using KeyStore for signing
+*.keystore
+*.jks

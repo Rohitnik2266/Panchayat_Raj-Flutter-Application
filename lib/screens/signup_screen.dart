@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart'; // Localization import
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'otp_screen.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -28,7 +29,7 @@ class _SignupScreenState extends State<SignupScreen> {
     String completePhone = "+91$phone";
 
     try {
-      // Check if the number is already registered
+      // Check if number is already registered
       QuerySnapshot query = await FirebaseFirestore.instance
           .collection('users')
           .where('number', isEqualTo: phone)
@@ -36,19 +37,18 @@ class _SignupScreenState extends State<SignupScreen> {
 
       if (query.docs.isNotEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.phoneNumberAlreadyRegistered)),
+          SnackBar(content: Text(AppLocalizations.of(context)!.numberAlreadyRegistered)),
         );
         setState(() => isLoading = false);
         return;
       }
 
-      // Start phone number verification
       await FirebaseAuth.instance.verifyPhoneNumber(
         phoneNumber: completePhone,
         verificationCompleted: (PhoneAuthCredential credential) {},
         verificationFailed: (FirebaseAuthException e) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppLocalizations.of(context)!.verificationFailed(e.message ?? 'Unknown error'))),
+            SnackBar(content: Text("${AppLocalizations.of(context)!.verificationFailed}: ${e.message}")),
           );
           setState(() => isLoading = false);
         },
@@ -69,7 +69,7 @@ class _SignupScreenState extends State<SignupScreen> {
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.errorOccurred)),
+        SnackBar(content: Text("${AppLocalizations.of(context)!.errorOccurred}: ${e.toString()}")),
       );
       setState(() => isLoading = false);
     }
@@ -78,6 +78,7 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -101,11 +102,9 @@ class _SignupScreenState extends State<SignupScreen> {
                 const SizedBox(height: 50),
                 TextFormField(
                   controller: nameController,
-                  validator: (value) => value!.isEmpty
-                      ? AppLocalizations.of(context)!.enterFullName
-                      : null,
+                  validator: (value) => value!.isEmpty ? t.enterFullName : null,
                   decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context)!.fullName,
+                    labelText: t.fullName,
                     prefixIcon: Icon(Icons.person, color: theme.iconTheme.color),
                     filled: true,
                     fillColor: theme.cardColor,
@@ -119,12 +118,21 @@ class _SignupScreenState extends State<SignupScreen> {
                 const SizedBox(height: 15),
                 TextFormField(
                   controller: numberController,
-                  keyboardType: TextInputType.phone,
-                  validator: (value) => value!.length != 10
-                      ? AppLocalizations.of(context)!.enterValidPhoneNumber
-                      : null,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(10),
+                  ],
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return t.enterPhoneNumber;
+                    } else if (value.length != 10) {
+                      return t.phoneMustBe10Digits;
+                    }
+                    return null;
+                  },
                   decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context)!.phoneNumber,
+                    labelText: t.phoneNumber,
                     prefixText: "+91 ",
                     prefixIcon: Icon(Icons.phone, color: theme.iconTheme.color),
                     filled: true,
@@ -151,7 +159,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     child: isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
                         : Text(
-                      AppLocalizations.of(context)!.signup,
+                      t.signUp,
                       style: GoogleFonts.poppins(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -165,7 +173,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      AppLocalizations.of(context)!.alreadyHaveAccount,
+                      "${t.alreadyHaveAccount} ",
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         color: theme.textTheme.bodyLarge?.color,
@@ -174,7 +182,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     GestureDetector(
                       onTap: () => Navigator.pop(context),
                       child: Text(
-                        AppLocalizations.of(context)!.login,
+                        t.login,
                         style: GoogleFonts.poppins(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,

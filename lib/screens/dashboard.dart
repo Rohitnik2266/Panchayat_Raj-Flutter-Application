@@ -5,9 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:panchayat_raj/screens/nearby_offices_screen.dart';
-import 'package:panchayat_raj/screens/profile_screen.dart';
-import 'package:panchayat_raj/screens/scheme_screen.dart';
-import 'package:panchayat_raj/screens/track_status.dart';
+import 'complaint_screen.dart';
+import 'track_status.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -17,14 +16,7 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
-  int _selectedIndex = 0;
   String _userName = "Loading...";
-
-  final List<Widget> _screens = [
-    HomeScreen(),
-    const SchemeListPage(),
-    const Profile(),
-  ];
 
   @override
   void initState() {
@@ -48,27 +40,18 @@ class _DashboardState extends State<Dashboard> {
     }
   }
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _screens,
-      ),
+    return const Scaffold(
+      body: HomeScreen(),
     );
   }
 }
 
 class HomeScreen extends StatelessWidget {
-  HomeScreen({super.key});
+  const HomeScreen({super.key});
 
-  final List<String> imageAssets = [
+  final List<String> imageAssets = const [
     'assets/images/pkvy.png',
     'assets/images/pm-kisan.png',
     'assets/images/pmfby.png',
@@ -79,7 +62,7 @@ class HomeScreen extends StatelessWidget {
     {'icon': Icons.description, 'label': 'documents', 'route': '/documents'},
     {'icon': Icons.track_changes, 'label': 'trackApplication', 'route': '/track_application'},
     {'icon': Icons.location_on, 'label': 'nearbyServices', 'route': '/nearby_services'},
-    {'icon': Icons.people, 'label': 'community', 'route': '/community'},
+    {'icon': Icons.report_problem, 'label': 'complaint', 'route': '/complaint'},
   ];
 
   @override
@@ -129,7 +112,7 @@ class HomeScreen extends StatelessWidget {
                                     color: Colors.red,
                                     child: Center(
                                       child: Text(
-                                        'imageNotFound',
+                                        t.imageNotFound,
                                         style: const TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold,
@@ -165,25 +148,25 @@ class HomeScreen extends StatelessWidget {
                           'documents': t.documents,
                           'trackApplication': t.trackApplication,
                           'nearbyServices': t.nearbyServices,
-                          'community': t.community,
+                          'complaint': t.complaint,
                         }[labelKey] ?? labelKey;
 
                         return InkWell(
                           onTap: () {
                             if (labelKey == 'trackApplication') {
-                              // Navigate to TrackStatusScreen
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(
-                                  builder: (context) => const TrackStatusScreen(),
-                                ),
+                                MaterialPageRoute(builder: (_) => const TrackStatusScreen()),
                               );
                             } else if (labelKey == 'nearbyServices') {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(
-                                  builder: (context) => const NearbyOfficesScreen(),
-                                ),
+                                MaterialPageRoute(builder: (_) => const NearbyOfficesScreen()),
+                              );
+                            } else if (labelKey == 'complaint') {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const ComplaintPage()),
                               );
                             } else {
                               Navigator.pushNamed(context, gridItems[index]['route']);
